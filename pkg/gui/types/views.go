@@ -5,6 +5,7 @@ import "github.com/jesseduffield/gocui"
 type Views struct {
 	Status         *gocui.View
 	Submodules     *gocui.View
+	StagedFiles    *gocui.View
 	Files          *gocui.View
 	Branches       *gocui.View
 	Remotes        *gocui.View

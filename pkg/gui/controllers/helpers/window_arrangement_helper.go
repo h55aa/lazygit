@@ -437,6 +437,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 
 			return []*boxlayout.Box{
 				fullHeightBox("status"),
+				fullHeightBox("stagedFiles"),
 				fullHeightBox("files"),
 				fullHeightBox("branches"),
 				fullHeightBox("commits"),
@@ -460,6 +461,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 					Window: "status",
 					Size:   3,
 				},
+				accordionBox(&boxlayout.Box{Window: "stagedFiles", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
@@ -488,6 +490,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 
 		return []*boxlayout.Box{
 			squashedSidePanelBox("status"),
+			squashedSidePanelBox("stagedFiles"),
 			squashedSidePanelBox("files"),
 			squashedSidePanelBox("branches"),
 			squashedSidePanelBox("commits"),

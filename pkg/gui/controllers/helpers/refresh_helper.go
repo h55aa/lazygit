@@ -522,6 +522,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 
 	self.c.OnUIThread(func() error {
 		self.refreshView(self.c.Contexts().Submodules)
+		self.refreshView(self.c.Contexts().StagedFiles)
 		self.refreshView(self.c.Contexts().Files)
 		return nil
 	})
@@ -596,6 +597,12 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	self.c.Model().Files = files
 	fileTreeViewModel.SetTree()
 	fileTreeViewModel.RWMutex.Unlock()
+
+	// Update staged files view model
+	stagedFilesViewModel := self.c.Contexts().StagedFiles.FileTreeViewModel
+	stagedFilesViewModel.RWMutex.Lock()
+	stagedFilesViewModel.SetTree()
+	stagedFilesViewModel.RWMutex.Unlock()
 
 	return nil
 }

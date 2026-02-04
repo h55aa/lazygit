@@ -30,6 +30,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Snake, name: "snake"},
 		{viewPtr: &gui.Views.Submodules, name: "submodules"},
 		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
+		{viewPtr: &gui.Views.StagedFiles, name: "stagedFiles"},
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Tags, name: "tags"},
 		{viewPtr: &gui.Views.Remotes, name: "remotes"},
@@ -186,7 +187,8 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
 	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
-	gui.Views.Files.Title = gui.c.Tr.FilesTitle
+	gui.Views.StagedFiles.Title = gui.c.Tr.StagedChangesTitle
+	gui.Views.Files.Title = gui.c.Tr.UnstagedChangesTitle
 	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
 	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
@@ -223,6 +225,7 @@ func (gui *Gui) configureViewProperties() {
 
 		gui.Views.Status.TitlePrefix = jumpLabels[0]
 
+		gui.Views.StagedFiles.TitlePrefix = jumpLabels[1]
 		gui.Views.Files.TitlePrefix = jumpLabels[1]
 		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
 		gui.Views.Submodules.TitlePrefix = jumpLabels[1]

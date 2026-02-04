@@ -25,6 +25,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 				Focusable:  true,
 			}),
 		),
+		StagedFiles:     NewStagedFilesContext(c),
 		Files:           NewWorkingTreeContext(c),
 		Submodules:      NewSubmodulesContext(c),
 		Menu:            NewMenuContext(c),

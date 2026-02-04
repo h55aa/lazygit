@@ -164,6 +164,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	filesController := controllers.NewFilesController(
 		common,
 	)
+	stagedFilesController := controllers.NewStagedFilesController(common)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
 		common,
@@ -229,6 +230,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.Tags,
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.StagedFiles,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Submodules,
 		gui.State.Contexts.ReflogCommits,
@@ -263,6 +265,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
+		gui.State.Contexts.StagedFiles,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
@@ -335,6 +338,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
 		filesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.StagedFiles,
+		stagedFilesController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Tags,

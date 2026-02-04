@@ -2,6 +2,8 @@
   "NotEnoughSpace": "無足夠空間顯示面板",
   "DiffTitle": "差異",
   "FilesTitle": "檔案",
+  "StagedChangesTitle": "已預存",
+  "UnstagedChangesTitle": "未預存",
   "BranchesTitle": "分支",
   "CommitsTitle": "提交",
   "StashTitle": "收藏 (Stash)",

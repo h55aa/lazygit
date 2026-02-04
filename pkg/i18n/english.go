@@ -14,6 +14,8 @@ type TranslationSet struct {
 	NotEnoughSpace                        string
 	DiffTitle                             string
 	FilesTitle                            string
+	StagedChangesTitle                    string
+	UnstagedChangesTitle                  string
 	BranchesTitle                         string
 	CommitsTitle                          string
 	StashTitle                            string
@@ -1116,6 +1118,8 @@ func EnglishTranslationSet() *TranslationSet {
 		NotEnoughSpace:                       "Not enough space to render panels",
 		DiffTitle:                            "Diff",
 		FilesTitle:                           "Files",
+		StagedChangesTitle:                   "Staged Changes",
+		UnstagedChangesTitle:                 "Changes",
 		BranchesTitle:                        "Branches",
 		CommitsTitle:                         "Commits",
 		StashTitle:                           "Stash",

@@ -10,26 +10,26 @@ import (
 	"github.com/samber/lo"
 )
 
-type WorkingTreeContext struct {
+type StagedFilesContext struct {
 	*filetree.FileTreeViewModel
 	*ListContextTrait
 	*SearchTrait
 }
 
 var (
-	_ types.IListContext       = (*WorkingTreeContext)(nil)
-	_ types.ISearchableContext = (*WorkingTreeContext)(nil)
+	_ types.IListContext       = (*StagedFilesContext)(nil)
+	_ types.ISearchableContext = (*StagedFilesContext)(nil)
 )
 
-func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
+func NewStagedFilesContext(c *ContextCommon) *StagedFilesContext {
 	viewModel := filetree.NewFileTreeViewModel(
 		func() []*models.File { return c.Model().Files },
 		c.Common,
 		c.UserConfig().Gui.ShowFileTree,
 	)
 
-	// Set default filter to Unstaged (use SetInitialFilter to avoid tree rebuild before model is ready)
-	viewModel.SetInitialFilter(filetree.DisplayUnstaged)
+	// Set default filter to Staged (use SetInitialFilter to avoid tree rebuild before model is ready)
+	viewModel.SetInitialFilter(filetree.DisplayStaged)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
 		showFileIcons := icons.IsIconEnabled() && c.UserConfig().Gui.ShowFileIcons
@@ -40,14 +40,14 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		})
 	}
 
-	ctx := &WorkingTreeContext{
+	ctx := &StagedFilesContext{
 		SearchTrait:       NewSearchTrait(c),
 		FileTreeViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       c.Views().Files,
-				WindowName: "files",
-				Key:        FILES_CONTEXT_KEY,
+				View:       c.Views().StagedFiles,
+				WindowName: "stagedFiles",
+				Key:        STAGED_FILES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
@@ -65,6 +65,6 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	return ctx
 }
 
-func (self *WorkingTreeContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+func (self *StagedFilesContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
 }

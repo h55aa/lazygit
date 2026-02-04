@@ -113,6 +113,12 @@ func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.SetTree()
 }
 
+// SetInitialFilter sets the filter without triggering a tree rebuild.
+// Use this during initialization when the model is not yet available.
+func (self *FileTree) SetInitialFilter(filter FileTreeDisplayFilter) {
+	self.filter = filter
+}
+
 func (self *FileTree) ToggleShowTree() {
 	self.showTree = !self.showTree
 	self.SetTree()

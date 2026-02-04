@@ -2,6 +2,8 @@
   "NotEnoughSpace": "没有足够的空间来渲染面板",
   "DiffTitle": "差异",
   "FilesTitle": "文件",
+  "StagedChangesTitle": "已暂存",
+  "UnstagedChangesTitle": "未暂存",
   "BranchesTitle": "分支",
   "CommitsTitle": "提交",
   "StashTitle": "贮藏",

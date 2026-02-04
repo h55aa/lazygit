@@ -415,6 +415,7 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 
 	if rerender {
 		self.c.PostRefreshUpdate(self.c.Contexts().Files)
+		self.c.PostRefreshUpdate(self.c.Contexts().StagedFiles)
 	}
 
 	return nil

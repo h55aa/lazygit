@@ -166,6 +166,12 @@ func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.IListCursor.SetSelection(0)
 }
 
+// SetInitialFilter sets the filter without triggering a tree rebuild.
+// Use this during initialization when the model is not yet available.
+func (self *FileTreeViewModel) SetInitialFilter(filter FileTreeDisplayFilter) {
+	self.IFileTree.(*FileTree).SetInitialFilter(filter)
+}
+
 // If we're going from flat to tree we want to select the same file.
 // If we're going from tree to flat and we have a file selected we want to select that.
 // If instead we've selected a directory we need to select the first file in that directory.

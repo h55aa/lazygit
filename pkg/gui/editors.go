@@ -29,6 +29,12 @@ func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, m
 	return matched
 }
 
+func (gui *Gui) commitInputEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	matched := gui.handleEditorKeypress(v, key, ch, mod, false)
+	v.RenderTextArea()
+	return matched
+}
+
 func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v, key, ch, mod, false)
 

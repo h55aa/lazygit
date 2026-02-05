@@ -30,6 +30,9 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Snake, name: "snake"},
 		{viewPtr: &gui.Views.Submodules, name: "submodules"},
 		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
+		{viewPtr: &gui.Views.CommitGenerateButton, name: "commitGenerateButton"},
+		{viewPtr: &gui.Views.CommitButton, name: "commitButton"},
+		{viewPtr: &gui.Views.CommitInput, name: "commitInput"},
 		{viewPtr: &gui.Views.StagedFiles, name: "stagedFiles"},
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Tags, name: "tags"},
@@ -127,6 +130,13 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
 
+	gui.Views.CommitButton.Frame = false
+	gui.Views.CommitGenerateButton.Frame = false
+
+	gui.Views.CommitInput.Editable = true
+	gui.Views.CommitInput.Editor = gocui.EditorFunc(gui.commitInputEditor)
+	gui.Views.CommitInput.SetContent("")
+
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Wrap = true
 	gui.Views.Confirmation.AutoRenderHyperLinks = true
@@ -189,6 +199,7 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.StagedFiles.Title = gui.c.Tr.StagedChangesTitle
 	gui.Views.Files.Title = gui.c.Tr.UnstagedChangesTitle
+	gui.Views.CommitInput.Title = gui.c.Tr.CommitSummaryTitle
 	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
 	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
@@ -200,6 +211,9 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
+
+	gui.c.SetViewContent(gui.Views.CommitButton, fmt.Sprintf("[ %s ]", gui.c.Tr.Actions.Commit))
+	gui.c.SetViewContent(gui.Views.CommitGenerateButton, "[ Generate ]")
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
@@ -225,6 +239,7 @@ func (gui *Gui) configureViewProperties() {
 
 		gui.Views.Status.TitlePrefix = jumpLabels[0]
 
+		gui.Views.CommitInput.TitlePrefix = jumpLabels[1]
 		gui.Views.StagedFiles.TitlePrefix = jumpLabels[1]
 		gui.Views.Files.TitlePrefix = jumpLabels[1]
 		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
@@ -243,6 +258,7 @@ func (gui *Gui) configureViewProperties() {
 	} else {
 		gui.Views.Status.TitlePrefix = ""
 
+		gui.Views.CommitInput.TitlePrefix = ""
 		gui.Views.Files.TitlePrefix = ""
 		gui.Views.Worktrees.TitlePrefix = ""
 		gui.Views.Submodules.TitlePrefix = ""

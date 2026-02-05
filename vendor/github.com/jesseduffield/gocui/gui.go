@@ -1351,6 +1351,13 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		newY := newCy + v.oy
 		// if view is editable don't go further than the furthest character for that line
 		if v.Editable {
+			// If the view is editable but has no content, clicking in the view
+			// should still place the cursor at (0,0). Without this guard, we can
+			// end up setting newY to -1 and indexing out of bounds.
+			if len(v.lines) == 0 {
+				v.lines = [][]cell{nil}
+			}
+
 			if newY < 0 {
 				newY = 0
 				newCy = -v.oy

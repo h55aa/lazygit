@@ -150,7 +150,7 @@ func (self *DiffHelper) currentlySelectedFilename() string {
 
 	switch currentContext := currentContext.(type) {
 	case types.IListContext:
-		if lo.Contains([]types.ContextKey{context.FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY}, currentContext.GetKey()) {
+		if lo.Contains([]types.ContextKey{context.FILES_CONTEXT_KEY, context.STAGED_FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY}, currentContext.GetKey()) {
 			return currentContext.GetSelectedItemId()
 		}
 	}

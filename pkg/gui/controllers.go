@@ -165,6 +165,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 		common,
 	)
 	stagedFilesController := controllers.NewStagedFilesController(common)
+	commitInputController := controllers.NewCommitInputController(common)
+	commitButtonController := controllers.NewCommitButtonController(common)
+	commitGenerateButtonController := controllers.NewCommitGenerateButtonController(common)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
 		common,
@@ -225,6 +228,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	// allow for navigating between side window contexts
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
+		gui.State.Contexts.CommitInput,
 		gui.State.Contexts.Remotes,
 		gui.State.Contexts.Worktrees,
 		gui.State.Contexts.Tags,
@@ -265,6 +269,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
+		gui.State.Contexts.CommitInput,
 		gui.State.Contexts.StagedFiles,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Branches,
@@ -342,6 +347,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.StagedFiles,
 		stagedFilesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitInput,
+		commitInputController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitButton,
+		commitButtonController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitGenerateButton,
+		commitGenerateButtonController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Tags,

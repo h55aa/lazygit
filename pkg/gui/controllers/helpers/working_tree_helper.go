@@ -138,6 +138,38 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 	})
 }
 
+// CommitStagedWithMessage commits staged changes using the provided message,
+// without opening the commit message panel. The onSuccess callback runs only
+// after a successful commit (and only after any "stage all" confirmation has
+// been accepted).
+func (self *WorkingTreeHelper) CommitStagedWithMessage(message string, forceSkipHooks bool, onSuccess func() error) error {
+	commitMessage := strings.TrimSpace(message)
+	if commitMessage == "" {
+		return errors.New(self.c.Tr.CommitWithoutMessageErr)
+	}
+
+	summary := commitMessage
+	description := ""
+	if i := strings.Index(commitMessage, "\n"); i != -1 {
+		summary = strings.TrimSpace(commitMessage[:i])
+		description = strings.TrimSpace(commitMessage[i+1:])
+	}
+
+	if summary == "" {
+		return errors.New(self.c.Tr.CommitWithoutMessageErr)
+	}
+
+	return self.WithEnsureCommittableFiles(func() error {
+		if err := self.handleCommit(summary, description, forceSkipHooks); err != nil {
+			return err
+		}
+		if onSuccess != nil {
+			return onSuccess()
+		}
+		return nil
+	})
+}
+
 func (self *WorkingTreeHelper) handleCommit(summary string, description string, forceSkipHooks bool) error {
 	cmdObj := self.c.Git().Commit.CommitCmdObj(summary, description, forceSkipHooks)
 	self.c.LogAction(self.c.Tr.Actions.Commit)

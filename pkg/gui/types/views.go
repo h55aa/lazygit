@@ -3,18 +3,21 @@ package types
 import "github.com/jesseduffield/gocui"
 
 type Views struct {
-	Status         *gocui.View
-	Submodules     *gocui.View
-	StagedFiles    *gocui.View
-	Files          *gocui.View
-	Branches       *gocui.View
-	Remotes        *gocui.View
-	Worktrees      *gocui.View
-	Tags           *gocui.View
-	RemoteBranches *gocui.View
-	ReflogCommits  *gocui.View
-	Commits        *gocui.View
-	Stash          *gocui.View
+	Status               *gocui.View
+	Submodules           *gocui.View
+	CommitGenerateButton *gocui.View
+	CommitButton         *gocui.View
+	CommitInput          *gocui.View
+	StagedFiles          *gocui.View
+	Files                *gocui.View
+	Branches             *gocui.View
+	Remotes              *gocui.View
+	Worktrees            *gocui.View
+	Tags                 *gocui.View
+	RemoteBranches       *gocui.View
+	ReflogCommits        *gocui.View
+	Commits              *gocui.View
+	Stash                *gocui.View
 
 	Main                   *gocui.View
 	Secondary              *gocui.View

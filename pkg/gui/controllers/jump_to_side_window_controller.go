@@ -30,17 +30,27 @@ func (self *JumpToSideWindowController) Context() types.Context {
 }
 
 func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	windows := self.c.Helpers().Window.SideWindows()
+	windows := self.c.Helpers().Window.JumpToBlockWindows()
+	keys := opts.Config.Universal.JumpToBlock
 
-	if len(opts.Config.Universal.JumpToBlock) != len(windows) {
-		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
+	count := len(windows)
+	if len(keys) < count {
+		count = len(keys)
 	}
 
-	return lo.Map(windows, func(window string, index int) *types.Binding {
+	if count == 0 {
+		return nil
+	}
+
+	if len(keys) != len(windows) {
+		log.Printf("Jump to block keybindings mismatch: got %d keybindings for %d windows", len(keys), len(windows))
+	}
+
+	return lo.Map(windows[:count], func(window string, index int) *types.Binding {
 		return &types.Binding{
 			ViewName: "",
 			// by default the keys are 1, 2, 3, etc
-			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
+			Key:      opts.GetKey(keys[index]),
 			Modifier: gocui.ModNone,
 			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}

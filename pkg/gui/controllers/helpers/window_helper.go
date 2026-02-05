@@ -135,5 +135,12 @@ func (self *WindowHelper) WindowForView(viewName string) string {
 }
 
 func (self *WindowHelper) SideWindows() []string {
+	return []string{"status", "commitInput", "stagedFiles", "files", "branches", "commits", "stash"}
+}
+
+// JumpToBlockWindows returns the high-level side windows that are mapped to the
+// "jump to block" keybindings (typically 1-5). This intentionally stays stable
+// even if the side panel contains extra windows.
+func (self *WindowHelper) JumpToBlockWindows() []string {
 	return []string{"status", "files", "branches", "commits", "stash"}
 }

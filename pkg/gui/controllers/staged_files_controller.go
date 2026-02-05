@@ -67,6 +67,52 @@ func (self *StagedFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 	}
 }
 
+func (self *StagedFilesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
+			// Ensure we don't leave the merge conflicts view "stuck" from a previous selection.
+			self.c.Helpers().MergeConflicts.ResetMergeState()
+
+			node := self.context().GetSelected()
+
+			if node == nil {
+				self.c.RenderToMainViews(types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title:    self.c.Tr.StagedChanges,
+						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+						Task:     types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
+					},
+				})
+				return
+			}
+
+			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true)
+			refreshOpts := types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Title:    self.c.Tr.StagedChanges,
+				},
+			}
+
+			if split {
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, false)
+				refreshOpts.Secondary = &types.ViewUpdateOpts{
+					Title:    self.c.Tr.UnstagedChanges,
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+				}
+			}
+
+			self.c.RenderToMainViews(refreshOpts)
+		})
+	}
+}
+
 func (self *StagedFilesController) GetOnClick() func() error {
 	return self.withItemGraceful(self.pressSingle)
 }

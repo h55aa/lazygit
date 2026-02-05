@@ -25,6 +25,17 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 				Focusable:  true,
 			}),
 		),
+		CommitGenerateButton: NewDisplayContext(COMMIT_GENERATE_BUTTON_CONTEXT_KEY, c.Views().CommitGenerateButton, "commitGenerateButton"),
+		CommitButton:         NewDisplayContext(COMMIT_BUTTON_CONTEXT_KEY, c.Views().CommitButton, "commitButton"),
+		CommitInput: NewSimpleContext(
+			NewBaseContext(NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       c.Views().CommitInput,
+				WindowName: "commitInput",
+				Key:        COMMIT_INPUT_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+		),
 		StagedFiles:     NewStagedFilesContext(c),
 		Files:           NewWorkingTreeContext(c),
 		Submodules:      NewSubmodulesContext(c),

@@ -435,14 +435,31 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
-			return []*boxlayout.Box{
+			result := []*boxlayout.Box{
 				fullHeightBox("status"),
+			}
+
+			// When the commit input is focused in full/half-screen mode, show the
+			// commit buttons above it.
+			if args.CurrentSideWindow == "commitInput" {
+				result = append(result, &boxlayout.Box{
+					Direction: boxlayout.COLUMN,
+					Size:      1,
+					Children: []*boxlayout.Box{
+						{Window: "commitGenerateButton", Weight: 1},
+						{Window: "commitButton", Weight: 1},
+					},
+				})
+			}
+
+			return append(result,
+				fullHeightBox("commitInput"),
 				fullHeightBox("stagedFiles"),
 				fullHeightBox("files"),
 				fullHeightBox("branches"),
 				fullHeightBox("commits"),
 				fullHeightBox("stash"),
-			}
+			)
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
@@ -459,6 +476,18 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			return []*boxlayout.Box{
 				{
 					Window: "status",
+					Size:   3,
+				},
+				{
+					Direction: boxlayout.COLUMN,
+					Size:      1,
+					Children: []*boxlayout.Box{
+						{Window: "commitGenerateButton", Weight: 1},
+						{Window: "commitButton", Weight: 1},
+					},
+				},
+				{
+					Window: "commitInput",
 					Size:   3,
 				},
 				accordionBox(&boxlayout.Box{Window: "stagedFiles", Weight: 1}),
@@ -488,13 +517,37 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
+		result := []*boxlayout.Box{
 			squashedSidePanelBox("status"),
-			squashedSidePanelBox("stagedFiles"),
+		}
+
+		// Avoid overflowing the screen on small heights: the commit area is not
+		// essential in squashed mode.
+		if height >= 10 {
+			result = append(result,
+				&boxlayout.Box{
+					Direction: boxlayout.COLUMN,
+					Size:      1,
+					Children: []*boxlayout.Box{
+						{Window: "commitGenerateButton", Weight: 1},
+						{Window: "commitButton", Weight: 1},
+					},
+				},
+				&boxlayout.Box{Window: "commitInput", Size: 3},
+			)
+		}
+
+		if height >= 10 {
+			result = append(result, squashedSidePanelBox("stagedFiles"))
+		}
+
+		result = append(result,
 			squashedSidePanelBox("files"),
 			squashedSidePanelBox("branches"),
 			squashedSidePanelBox("commits"),
 			squashedSidePanelBox("stash"),
-		}
+		)
+
+		return result
 	}
 }

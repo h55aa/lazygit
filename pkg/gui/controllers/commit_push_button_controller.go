@@ -63,6 +63,14 @@ func (self *CommitPushButtonController) GetKeybindings(opts types.KeybindingsOpt
 			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt2),
 			Handler: self.focusStagedFiles,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Handler: self.focusStagedFiles,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
+			Handler: self.focusStagedFiles,
+		},
 	}
 }
 

@@ -241,9 +241,8 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
 	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
 
-	if splitMainPanelSideBySide(args) {
-		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side
-	}
+	// Keep side panel width stable across focus/selection changes. We still split
+	// the main section when needed, but we no longer shrink the side panel to do so.
 
 	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
 		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {

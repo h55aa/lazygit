@@ -185,8 +185,18 @@ func (self *ListController) tryMoveAcrossSideListPanels(change int, before int) 
 
 	for idx := currentWindowIdx + step; idx >= 0 && idx < len(sideWindows); idx += step {
 		targetContext := self.c.Helpers().Window.GetContextForWindow(sideWindows[idx])
+		targetView := targetContext.GetView()
+		if targetView == nil || !targetView.Visible {
+			continue
+		}
+
 		targetListContext, ok := targetContext.(types.IListContext)
 		if !ok {
+			switch targetContext.GetWindowName() {
+			case "commitInput", "commitGenerateButton", "commitButton", "commitPushButton":
+				self.c.Context().Push(self.c.Contexts().CommitInput, types.OnFocusOpts{})
+				return true
+			}
 			continue
 		}
 

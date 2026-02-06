@@ -65,6 +65,14 @@ func (self *CommitGenerateButtonController) GetKeybindings(opts types.Keybinding
 			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt2),
 			Handler: self.focusCommitButton,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Handler: self.focusStagedFiles,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
+			Handler: self.focusStagedFiles,
+		},
 	}
 }
 
@@ -101,6 +109,11 @@ func (self *CommitGenerateButtonController) focusCommitInput() error {
 
 func (self *CommitGenerateButtonController) focusCommitButton() error {
 	self.c.Context().Push(self.c.Contexts().CommitButton, types.OnFocusOpts{})
+	return nil
+}
+
+func (self *CommitGenerateButtonController) focusStagedFiles() error {
+	self.c.Context().Push(self.c.Contexts().StagedFiles, types.OnFocusOpts{})
 	return nil
 }
 

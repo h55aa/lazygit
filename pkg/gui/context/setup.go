@@ -25,8 +25,33 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 				Focusable:  true,
 			}),
 		),
-		CommitGenerateButton: NewDisplayContext(COMMIT_GENERATE_BUTTON_CONTEXT_KEY, c.Views().CommitGenerateButton, "commitGenerateButton"),
-		CommitButton:         NewDisplayContext(COMMIT_BUTTON_CONTEXT_KEY, c.Views().CommitButton, "commitButton"),
+		CommitGenerateButton: NewSimpleContext(
+			NewBaseContext(NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       c.Views().CommitGenerateButton,
+				WindowName: "commitGenerateButton",
+				Key:        COMMIT_GENERATE_BUTTON_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+		),
+		CommitButton: NewSimpleContext(
+			NewBaseContext(NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       c.Views().CommitButton,
+				WindowName: "commitButton",
+				Key:        COMMIT_BUTTON_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+		),
+		CommitPushButton: NewSimpleContext(
+			NewBaseContext(NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       c.Views().CommitPushButton,
+				WindowName: "commitPushButton",
+				Key:        COMMIT_PUSH_BUTTON_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+		),
 		CommitInput: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:       types.SIDE_CONTEXT,

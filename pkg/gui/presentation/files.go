@@ -28,10 +28,11 @@ func RenderFileTree(
 	showRootItem bool,
 ) []string {
 	collapsedPaths := tree.CollapsedPaths()
+	displayFilter := tree.GetFilter()
 	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.File], treeDepth int, visualDepth int, isCollapsed bool) string {
 		fileNode := filetree.NewFileNode(node)
 
-		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig, showRootItem)
+		return getFileLine(isCollapsed, displayFilter, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig, showRootItem)
 	})
 }
 
@@ -111,6 +112,7 @@ func renderAux[T any](
 
 func getFileLine(
 	isCollapsed bool,
+	displayFilter filetree.FileTreeDisplayFilter,
 	hasUnstagedChanges bool,
 	hasStagedChanges bool,
 	treeDepth int,
@@ -178,7 +180,43 @@ func getFileLine(
 		}
 	}
 
+	if file != nil {
+		button := FileActionButtonToken(displayFilter, hasUnstagedChanges, hasStagedChanges)
+		if button != "" {
+			output += " " + StyledFileActionButton(button)
+		}
+	}
+
 	return output
+}
+
+func FileActionButtonToken(
+	displayFilter filetree.FileTreeDisplayFilter,
+	hasUnstagedChanges bool,
+	hasStagedChanges bool,
+) string {
+	switch displayFilter {
+	case filetree.DisplayUnstaged:
+		return "[+]"
+	case filetree.DisplayStaged:
+		return "[-]"
+	}
+
+	_ = hasUnstagedChanges
+	_ = hasStagedChanges
+
+	return ""
+}
+
+func StyledFileActionButton(button string) string {
+	switch button {
+	case "[+]":
+		return style.FgGreen.Sprint(button)
+	case "[-]":
+		return style.FgRed.Sprint(button)
+	default:
+		return theme.DefaultTextColor.Sprint(button)
+	}
 }
 
 func formatFileStatus(file *models.File, restColor style.TextStyle) string {

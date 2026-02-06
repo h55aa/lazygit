@@ -32,6 +32,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
 		{viewPtr: &gui.Views.CommitGenerateButton, name: "commitGenerateButton"},
 		{viewPtr: &gui.Views.CommitButton, name: "commitButton"},
+		{viewPtr: &gui.Views.CommitPushButton, name: "commitPushButton"},
 		{viewPtr: &gui.Views.CommitInput, name: "commitInput"},
 		{viewPtr: &gui.Views.StagedFiles, name: "stagedFiles"},
 		{viewPtr: &gui.Views.Files, name: "files"},
@@ -132,6 +133,7 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.CommitButton.Frame = false
 	gui.Views.CommitGenerateButton.Frame = false
+	gui.Views.CommitPushButton.Frame = false
 
 	gui.Views.CommitInput.Editable = true
 	gui.Views.CommitInput.Editor = gocui.EditorFunc(gui.commitInputEditor)
@@ -214,6 +216,7 @@ func (gui *Gui) configureViewProperties() {
 
 	gui.c.SetViewContent(gui.Views.CommitButton, fmt.Sprintf("[ %s ]", gui.c.Tr.Actions.Commit))
 	gui.c.SetViewContent(gui.Views.CommitGenerateButton, "[ Generate ]")
+	gui.c.SetViewContent(gui.Views.CommitPushButton, fmt.Sprintf("[ %s ]", gui.c.Tr.Actions.Push))
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle

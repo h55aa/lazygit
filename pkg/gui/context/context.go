@@ -15,6 +15,7 @@ const (
 	STAGED_FILES_CONTEXT_KEY             types.ContextKey = "stagedFiles"
 	COMMIT_GENERATE_BUTTON_CONTEXT_KEY   types.ContextKey = "commitGenerateButton"
 	COMMIT_BUTTON_CONTEXT_KEY            types.ContextKey = "commitButton"
+	COMMIT_PUSH_BUTTON_CONTEXT_KEY       types.ContextKey = "commitPushButton"
 	COMMIT_INPUT_CONTEXT_KEY             types.ContextKey = "commitInput"
 	LOCAL_BRANCHES_CONTEXT_KEY           types.ContextKey = "localBranches"
 	REMOTES_CONTEXT_KEY                  types.ContextKey = "remotes"
@@ -61,6 +62,7 @@ var AllContextKeys = []types.ContextKey{
 	STAGED_FILES_CONTEXT_KEY,
 	COMMIT_GENERATE_BUTTON_CONTEXT_KEY,
 	COMMIT_BUTTON_CONTEXT_KEY,
+	COMMIT_PUSH_BUTTON_CONTEXT_KEY,
 	COMMIT_INPUT_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
 	REMOTES_CONTEXT_KEY,
@@ -96,6 +98,7 @@ type ContextTree struct {
 	Snake                       types.Context
 	CommitGenerateButton        types.Context
 	CommitButton                types.Context
+	CommitPushButton            types.Context
 	CommitInput                 types.Context
 	StagedFiles                 *StagedFilesContext
 	Files                       *WorkingTreeContext
@@ -144,6 +147,7 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Snake,
 		self.CommitGenerateButton,
 		self.CommitButton,
+		self.CommitPushButton,
 		self.CommitInput,
 		self.Submodules,
 		self.Worktrees,

@@ -32,6 +32,30 @@ func (self *CommitInputController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler:     self.confirm,
 			Description: self.c.Tr.Actions.Commit,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlock),
+			Handler: self.focusStatus,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlock),
+			Handler: self.focusGenerateButton,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
+			Handler: self.focusStatus,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt),
+			Handler: self.focusGenerateButton,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt2),
+			Handler: self.focusStatus,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt2),
+			Handler: self.focusGenerateButton,
+		},
 	}
 }
 
@@ -47,6 +71,16 @@ func (self *CommitInputController) GetMouseKeybindings(opts types.KeybindingsOpt
 
 func (self *CommitInputController) onClick(gocui.ViewMouseBindingOpts) error {
 	self.c.Context().Push(self.c.Contexts().CommitInput, types.OnFocusOpts{})
+	return nil
+}
+
+func (self *CommitInputController) focusStatus() error {
+	self.c.Context().Push(self.c.Contexts().Status, types.OnFocusOpts{})
+	return nil
+}
+
+func (self *CommitInputController) focusGenerateButton() error {
+	self.c.Context().Push(self.c.Contexts().CommitGenerateButton, types.OnFocusOpts{})
 	return nil
 }
 
@@ -69,4 +103,3 @@ func (self *CommitInputController) confirm() error {
 		return nil
 	})
 }
-

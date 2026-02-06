@@ -1,8 +1,13 @@
 package controllers
 
 import (
+	"errors"
+	"unicode/utf8"
+
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -35,7 +40,7 @@ func (self *StagedFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 	return []*types.Binding{
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItems(self.press),
+			Handler:           self.handleSelect,
 			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.Stage,
 			Tooltip:           self.c.Tr.StageTooltip,
@@ -63,6 +68,25 @@ func (self *StagedFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:         opts.GetKey(opts.Config.Files.ExpandAll),
 			Handler:     self.expandAll,
 			Description: self.c.Tr.ExpandAll,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.enter,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.FileEnter,
+			Tooltip:           self.c.Tr.FileEnterTooltip,
+			DisplayOnScreen:   true,
+		},
+	}
+}
+
+func (self *StagedFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    self.context().GetViewName(),
+			FocusedView: self.context().GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickActionButton,
 		},
 	}
 }
@@ -117,6 +141,19 @@ func (self *StagedFilesController) GetOnClick() func() error {
 	return self.withItemGraceful(self.pressSingle)
 }
 
+func (self *StagedFilesController) handleSelect() error {
+	selectedNodes, _, _ := self.context().GetSelectedItems()
+	if len(selectedNodes) == 0 {
+		return errors.New(self.c.Tr.NoItemSelected)
+	}
+
+	if len(selectedNodes) == 1 && selectedNodes[0] != nil && selectedNodes[0].File == nil {
+		return self.handleToggleDirCollapsed()
+	}
+
+	return self.press(selectedNodes)
+}
+
 // For staged files, pressing will always unstage them
 func (self *StagedFilesController) press(selectedNodes []*filetree.FileNode) error {
 	if err := self.pressWithLock(selectedNodes); err != nil {
@@ -167,12 +204,32 @@ func (self *StagedFilesController) pressSingle(node *filetree.FileNode) error {
 	return self.press([]*filetree.FileNode{node})
 }
 
+func (self *StagedFilesController) enter() error {
+	node := self.context().GetSelected()
+	if node == nil || node.File != nil {
+		return nil
+	}
+
+	return self.handleToggleDirCollapsed()
+}
+
 func (self *StagedFilesController) Context() types.Context {
 	return self.c.Contexts().StagedFiles
 }
 
 func (self *StagedFilesController) context() *context.StagedFilesContext {
 	return self.c.Contexts().StagedFiles
+}
+
+func (self *StagedFilesController) handleToggleDirCollapsed() error {
+	node := self.context().GetSelected()
+	if node == nil || node.File != nil {
+		return nil
+	}
+
+	self.context().FileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *StagedFilesController) toggleTreeView() error {
@@ -197,4 +254,40 @@ func (self *StagedFilesController) expandAll() error {
 	self.c.PostRefreshUpdate(self.context())
 
 	return nil
+}
+
+func (self *StagedFilesController) onClickActionButton(opts gocui.ViewMouseBindingOpts) error {
+	modelLineIdx := self.context().ViewIndexToModelIndex(opts.Y)
+	if modelLineIdx < 0 || modelLineIdx > self.context().GetList().Len()-1 {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	node := self.context().Get(modelLineIdx)
+	if node == nil || node.File == nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	filter := self.context().GetFilter()
+	buttonToken := presentation.FileActionButtonToken(filter, node.GetHasUnstagedChanges(), node.GetHasStagedChanges())
+	if buttonToken == "" {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	line, ok := self.context().GetView().Line(opts.Y)
+	if !ok {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	startCol := lastIndexByRune(line, buttonToken)
+	if startCol < 0 {
+		return gocui.ErrKeybindingNotHandled
+	}
+	endCol := startCol + utf8.RuneCountInString(buttonToken)
+	if opts.X < startCol || opts.X >= endCol {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	self.context().GetList().SetSelection(modelLineIdx)
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return self.press([]*filetree.FileNode{node})
 }

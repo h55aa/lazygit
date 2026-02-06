@@ -17,6 +17,11 @@ type CommitGenerateButtonController struct {
 	c *ControllerCommon
 }
 
+const (
+	commitGenerateButtonDefaultLabel = "[ Generate ]"
+	commitGenerateButtonFocusedLabel = "[*Generate*]"
+)
+
 var _ types.IController = &CommitGenerateButtonController{}
 
 func NewCommitGenerateButtonController(c *ControllerCommon) *CommitGenerateButtonController {
@@ -30,6 +35,39 @@ func (self *CommitGenerateButtonController) Context() types.Context {
 	return self.c.Contexts().CommitGenerateButton
 }
 
+func (self *CommitGenerateButtonController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	return []*types.Binding{
+		{
+			Key:     opts.GetKey(opts.Config.Universal.SubmitEditorText),
+			Handler: self.submit,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlock),
+			Handler: self.focusCommitInput,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlock),
+			Handler: self.focusCommitButton,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
+			Handler: self.focusCommitInput,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt),
+			Handler: self.focusCommitButton,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt2),
+			Handler: self.focusCommitInput,
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt2),
+			Handler: self.focusCommitButton,
+		},
+	}
+}
+
 func (self *CommitGenerateButtonController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
@@ -38,6 +76,32 @@ func (self *CommitGenerateButtonController) GetMouseKeybindings(opts types.Keybi
 			Handler:  self.onClick,
 		},
 	}
+}
+
+func (self *CommitGenerateButtonController) submit() error {
+	return self.onClick(gocui.ViewMouseBindingOpts{})
+}
+
+func (self *CommitGenerateButtonController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		self.c.SetViewContent(self.c.Views().CommitGenerateButton, commitGenerateButtonFocusedLabel)
+	}
+}
+
+func (self *CommitGenerateButtonController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.c.SetViewContent(self.c.Views().CommitGenerateButton, commitGenerateButtonDefaultLabel)
+	}
+}
+
+func (self *CommitGenerateButtonController) focusCommitInput() error {
+	self.c.Context().Push(self.c.Contexts().CommitInput, types.OnFocusOpts{})
+	return nil
+}
+
+func (self *CommitGenerateButtonController) focusCommitButton() error {
+	self.c.Context().Push(self.c.Contexts().CommitButton, types.OnFocusOpts{})
+	return nil
 }
 
 func (self *CommitGenerateButtonController) onClick(gocui.ViewMouseBindingOpts) error {
@@ -86,7 +150,7 @@ func (self *CommitGenerateButtonController) generateCommitMessage() (string, err
 		return "", err
 	}
 
-	cmd := exec.Command(zeemuxPath, "llm", "commit-msg", "--repo", repoPath)
+	cmd := exec.Command(zeemuxPath, "llm", "commit-msg", "--provider", "qwen", "--repo", repoPath)
 	cmd.Dir = repoPath
 
 	var stdout bytes.Buffer

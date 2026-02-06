@@ -168,6 +168,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	commitInputController := controllers.NewCommitInputController(common)
 	commitButtonController := controllers.NewCommitButtonController(common)
 	commitGenerateButtonController := controllers.NewCommitGenerateButtonController(common)
+	commitPushButtonController := controllers.NewCommitPushButtonController(common, syncController.HandlePush)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
 		common,
@@ -229,6 +230,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.CommitInput,
+		gui.State.Contexts.CommitGenerateButton,
+		gui.State.Contexts.CommitButton,
+		gui.State.Contexts.CommitPushButton,
 		gui.State.Contexts.Remotes,
 		gui.State.Contexts.Worktrees,
 		gui.State.Contexts.Tags,
@@ -270,6 +274,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.CommitInput,
+		gui.State.Contexts.CommitGenerateButton,
+		gui.State.Contexts.CommitButton,
+		gui.State.Contexts.CommitPushButton,
 		gui.State.Contexts.StagedFiles,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Branches,
@@ -355,6 +362,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitButton,
 		commitButtonController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitPushButton,
+		commitPushButtonController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.CommitGenerateButton,

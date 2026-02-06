@@ -135,7 +135,18 @@ func (self *WindowHelper) WindowForView(viewName string) string {
 }
 
 func (self *WindowHelper) SideWindows() []string {
-	return []string{"status", "commitInput", "stagedFiles", "files", "branches", "commits", "stash"}
+	return []string{
+		"status",
+		"commitInput",
+		"commitGenerateButton",
+		"commitButton",
+		"commitPushButton",
+		"stagedFiles",
+		"files",
+		"branches",
+		"commits",
+		"stash",
+	}
 }
 
 // JumpToBlockWindows returns the high-level side windows that are mapped to the

@@ -420,6 +420,60 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
+		collapsedBranchesAndCommitsBox := func(window string) *boxlayout.Box {
+			if args.CurrentSideWindow == window {
+				weight := 1
+				if args.UserConfig.Gui.ExpandFocusedSidePanel {
+					weight = args.UserConfig.Gui.ExpandedSidePanelWeight
+				}
+				return &boxlayout.Box{
+					Window: window,
+					Weight: weight,
+				}
+			}
+
+			return &boxlayout.Box{
+				Window: window,
+				Size:   3,
+			}
+		}
+
+		commitButtonsSectionWidth := func() int {
+			if width >= 68 {
+				return 36
+			}
+			if width >= 56 {
+				return 30
+			}
+			if width >= 44 {
+				return 24
+			}
+			return 18
+		}
+
+		commitButtonsRow := func() *boxlayout.Box {
+			return &boxlayout.Box{
+				Direction: boxlayout.COLUMN,
+				Size:      commitButtonsSectionWidth(),
+				Children: []*boxlayout.Box{
+					{Window: "commitGenerateButton", Weight: 1},
+					{Window: "commitButton", Weight: 1},
+					{Window: "commitPushButton", Weight: 1},
+				},
+			}
+		}
+
+		commitSectionFixedHeight := func() *boxlayout.Box {
+			return &boxlayout.Box{
+				Direction: boxlayout.COLUMN,
+				Size:      3,
+				Children: []*boxlayout.Box{
+					{Window: "commitInput", Weight: 1},
+					commitButtonsRow(),
+				},
+			}
+		}
+
 		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
 				if window == args.CurrentSideWindow {
@@ -439,21 +493,23 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				fullHeightBox("status"),
 			}
 
-			// When the commit input is focused in full/half-screen mode, show the
-			// commit buttons above it.
-			if args.CurrentSideWindow == "commitInput" {
+			if args.CurrentSideWindow == "commitInput" ||
+				args.CurrentSideWindow == "commitGenerateButton" ||
+				args.CurrentSideWindow == "commitButton" ||
+				args.CurrentSideWindow == "commitPushButton" {
 				result = append(result, &boxlayout.Box{
 					Direction: boxlayout.COLUMN,
-					Size:      1,
+					Weight:    1,
 					Children: []*boxlayout.Box{
-						{Window: "commitGenerateButton", Weight: 1},
-						{Window: "commitButton", Weight: 1},
+						{Window: "commitInput", Weight: 1},
+						commitButtonsRow(),
 					},
 				})
+			} else {
+				result = append(result, fullHeightBox("commitInput"))
 			}
 
 			return append(result,
-				fullHeightBox("commitInput"),
 				fullHeightBox("stagedFiles"),
 				fullHeightBox("files"),
 				fullHeightBox("branches"),
@@ -478,22 +534,11 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 					Window: "status",
 					Size:   3,
 				},
-				{
-					Direction: boxlayout.COLUMN,
-					Size:      1,
-					Children: []*boxlayout.Box{
-						{Window: "commitGenerateButton", Weight: 1},
-						{Window: "commitButton", Weight: 1},
-					},
-				},
-				{
-					Window: "commitInput",
-					Size:   3,
-				},
+				commitSectionFixedHeight(),
 				accordionBox(&boxlayout.Box{Window: "stagedFiles", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
+				collapsedBranchesAndCommitsBox("branches"),
+				collapsedBranchesAndCommitsBox("commits"),
 				accordionBox(getDefaultStashWindowBox(args)),
 			}
 		}
@@ -525,15 +570,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 		// essential in squashed mode.
 		if height >= 10 {
 			result = append(result,
-				&boxlayout.Box{
-					Direction: boxlayout.COLUMN,
-					Size:      1,
-					Children: []*boxlayout.Box{
-						{Window: "commitGenerateButton", Weight: 1},
-						{Window: "commitButton", Weight: 1},
-					},
-				},
-				&boxlayout.Box{Window: "commitInput", Size: 3},
+				commitSectionFixedHeight(),
 			)
 		}
 

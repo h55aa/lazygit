@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
@@ -12,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -43,7 +45,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	return []*types.Binding{
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItems(self.press),
+			Handler:           self.handleSelect,
 			GetDisabledReason: self.require(self.withFileTreeViewModelMutex(self.itemsSelected())),
 			Description:       self.c.Tr.Stage,
 			Tooltip:           self.c.Tr.StageTooltip,
@@ -141,6 +143,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.FileEnter,
 			Tooltip:           self.c.Tr.FileEnterTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -220,6 +223,12 @@ func (self *FilesController) withFileTreeViewModelMutex(callback func() *types.D
 
 func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    self.context().GetViewName(),
+			FocusedView: self.context().GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickActionButton,
+		},
 		{
 			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
@@ -419,6 +428,19 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 	}
 
 	return nil
+}
+
+func (self *FilesController) handleSelect() error {
+	selectedNodes, _, _ := self.context().GetSelectedItems()
+	if len(selectedNodes) == 0 {
+		return errors.New(self.c.Tr.NoItemSelected)
+	}
+
+	if len(selectedNodes) == 1 && selectedNodes[0] != nil && selectedNodes[0].File == nil {
+		return self.handleToggleDirCollapsed()
+	}
+
+	return self.press(selectedNodes)
 }
 
 func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) error {
@@ -1231,6 +1253,42 @@ func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error 
 	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
+func (self *FilesController) onClickActionButton(opts gocui.ViewMouseBindingOpts) error {
+	modelLineIdx := self.context().ViewIndexToModelIndex(opts.Y)
+	if modelLineIdx < 0 || modelLineIdx > self.context().GetList().Len()-1 {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	node := self.context().Get(modelLineIdx)
+	if node == nil || node.File == nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	filter := self.context().GetFilter()
+	buttonToken := presentation.FileActionButtonToken(filter, node.GetHasUnstagedChanges(), node.GetHasStagedChanges())
+	if buttonToken == "" {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	line, ok := self.context().GetView().Line(opts.Y)
+	if !ok {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	startCol := lastIndexByRune(line, buttonToken)
+	if startCol < 0 {
+		return gocui.ErrKeybindingNotHandled
+	}
+	endCol := startCol + utf8.RuneCountInString(buttonToken)
+	if opts.X < startCol || opts.X >= endCol {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	self.context().GetList().SetSelection(modelLineIdx)
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return self.press([]*filetree.FileNode{node})
+}
+
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
 		self.c.LogAction("Fetch")
@@ -1484,4 +1542,27 @@ func (self *FilesController) isInTreeMode() *types.DisabledReason {
 	}
 
 	return nil
+}
+
+func lastIndexByRune(s string, token string) int {
+	sRunes := []rune(s)
+	tokenRunes := []rune(token)
+	if len(tokenRunes) == 0 || len(tokenRunes) > len(sRunes) {
+		return -1
+	}
+
+	for idx := len(sRunes) - len(tokenRunes); idx >= 0; idx-- {
+		match := true
+		for offset := range tokenRunes {
+			if sRunes[idx+offset] != tokenRunes[offset] {
+				match = false
+				break
+			}
+		}
+		if match {
+			return idx
+		}
+	}
+
+	return -1
 }

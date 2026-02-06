@@ -128,6 +128,10 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 
 		self.context.HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 	} else {
+		if self.tryMoveAcrossSideListPanels(change, before) {
+			return nil
+		}
+
 		// If the selection did not change (because, for example, we are at the top of the list and
 		// press up), we still want to ensure that the selection is visible. This is useful after
 		// scrolling the selection out of view with the mouse.
@@ -135,6 +139,68 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	}
 
 	return nil
+}
+
+func (self *ListController) tryMoveAcrossSideListPanels(change int, before int) bool {
+	if change != -1 && change != 1 {
+		return false
+	}
+
+	if self.context.GetKind() != types.SIDE_CONTEXT || self.context.GetList().IsSelectingRange() {
+		return false
+	}
+
+	listLen := self.context.GetList().Len()
+	atBoundary := listLen == 0
+	if !atBoundary {
+		if change < 0 {
+			atBoundary = before <= 0
+		} else {
+			atBoundary = before >= self.context.IndexForGotoBottom()
+		}
+	}
+
+	if !atBoundary {
+		return false
+	}
+
+	sideWindows := self.c.Helpers().Window.SideWindows()
+	currentWindow := self.context.GetWindowName()
+
+	currentWindowIdx := -1
+	for idx, windowName := range sideWindows {
+		if windowName == currentWindow {
+			currentWindowIdx = idx
+			break
+		}
+	}
+	if currentWindowIdx == -1 {
+		return false
+	}
+
+	step := 1
+	if change < 0 {
+		step = -1
+	}
+
+	for idx := currentWindowIdx + step; idx >= 0 && idx < len(sideWindows); idx += step {
+		targetContext := self.c.Helpers().Window.GetContextForWindow(sideWindows[idx])
+		targetListContext, ok := targetContext.(types.IListContext)
+		if !ok {
+			continue
+		}
+
+		if change > 0 {
+			targetListContext.GetList().SetSelection(0)
+		} else {
+			targetListContext.GetList().SetSelection(targetListContext.IndexForGotoBottom())
+		}
+
+		self.c.Context().Push(targetListContext, types.OnFocusOpts{ScrollSelectionIntoView: true})
+		return true
+	}
+
+	return false
 }
 
 func (self *ListController) HandlePrevPage() error {

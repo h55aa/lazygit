@@ -7,6 +7,7 @@ type Views struct {
 	Submodules           *gocui.View
 	CommitGenerateButton *gocui.View
 	CommitButton         *gocui.View
+	CommitPushButton     *gocui.View
 	CommitInput          *gocui.View
 	StagedFiles          *gocui.View
 	Files                *gocui.View

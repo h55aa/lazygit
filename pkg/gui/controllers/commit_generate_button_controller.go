@@ -43,6 +43,10 @@ func (self *CommitGenerateButtonController) GetKeybindings(opts types.Keybinding
 			Handler: self.submit,
 		},
 		{
+			Key:     gocui.KeySpace,
+			Handler: self.submit,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Universal.PrevBlock),
 			Handler: self.focusCommitInput,
 		},

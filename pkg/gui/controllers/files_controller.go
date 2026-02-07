@@ -1260,7 +1260,7 @@ func (self *FilesController) onClickActionButton(opts gocui.ViewMouseBindingOpts
 	}
 
 	node := self.context().Get(modelLineIdx)
-	if node == nil || node.File == nil {
+	if node == nil {
 		return gocui.ErrKeybindingNotHandled
 	}
 

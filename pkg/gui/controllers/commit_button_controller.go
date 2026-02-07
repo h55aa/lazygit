@@ -38,6 +38,11 @@ func (self *CommitButtonController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.Actions.Commit,
 		},
 		{
+			Key:         gocui.KeySpace,
+			Handler:     self.submit,
+			Description: self.c.Tr.Actions.Commit,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Universal.PrevBlock),
 			Handler: self.focusGenerateButton,
 		},

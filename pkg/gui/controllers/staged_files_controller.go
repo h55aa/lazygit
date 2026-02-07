@@ -263,7 +263,7 @@ func (self *StagedFilesController) onClickActionButton(opts gocui.ViewMouseBindi
 	}
 
 	node := self.context().Get(modelLineIdx)
-	if node == nil || node.File == nil {
+	if node == nil {
 		return gocui.ErrKeybindingNotHandled
 	}
 

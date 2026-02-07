@@ -180,11 +180,9 @@ func getFileLine(
 		}
 	}
 
-	if file != nil {
-		button := FileActionButtonToken(displayFilter, hasUnstagedChanges, hasStagedChanges)
-		if button != "" {
-			output += " " + StyledFileActionButton(button)
-		}
+	button := FileActionButtonToken(displayFilter, hasUnstagedChanges, hasStagedChanges)
+	if button != "" {
+		output += " " + StyledFileActionButton(button)
 	}
 
 	return output

@@ -1286,7 +1286,35 @@ func (self *FilesController) onClickActionButton(opts gocui.ViewMouseBindingOpts
 
 	self.context().GetList().SetSelection(modelLineIdx)
 	self.context().HandleFocus(types.OnFocusOpts{})
-	return self.press([]*filetree.FileNode{node})
+
+	targetNodes := []*filetree.FileNode{node}
+	if !node.IsFile() {
+		targetNodes = flattenSelectedNodesToFiles(targetNodes)
+		self.c.Log.Debugf(
+			"files action button click on directory: path=%q button=%q flattened_files=%d",
+			node.GetPath(),
+			buttonToken,
+			len(targetNodes),
+		)
+		if len(targetNodes) == 0 {
+			return gocui.ErrKeybindingNotHandled
+		}
+	} else {
+		self.c.Log.Debugf(
+			"files action button click on file: path=%q button=%q",
+			node.GetPath(),
+			buttonToken,
+		)
+	}
+
+	self.c.Log.Debugf(
+		"files action button execute: targets=%d filter=%d click=(x:%d,y:%d)",
+		len(targetNodes),
+		filter,
+		opts.X,
+		opts.Y,
+	)
+	return self.press(targetNodes)
 }
 
 func (self *FilesController) fetch() error {

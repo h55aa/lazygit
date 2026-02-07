@@ -77,6 +77,21 @@ func (self *StagedFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Tooltip:           self.c.Tr.FileEnterTooltip,
 			DisplayOnScreen:   true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItems(self.edit),
+			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditFileTooltip,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:           self.open,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFile,
+			Tooltip:           self.c.Tr.OpenFileTooltip,
+		},
 	}
 }
 
@@ -240,6 +255,33 @@ func (self *StagedFilesController) toggleTreeView() error {
 	return nil
 }
 
+func (self *StagedFilesController) edit(nodes []*filetree.FileNode) error {
+	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+		func(node *filetree.FileNode, _ int) (string, bool) {
+			return node.GetPath(), node.IsFile()
+		}))
+}
+
+func (self *StagedFilesController) canEditFiles(nodes []*filetree.FileNode) *types.DisabledReason {
+	if lo.NoneBy(nodes, func(node *filetree.FileNode) bool { return node.IsFile() }) {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.ErrCannotEditDirectory,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	return nil
+}
+
+func (self *StagedFilesController) open() error {
+	node := self.context().GetSelected()
+	if node == nil {
+		return nil
+	}
+
+	return self.c.Helpers().Files.OpenFile(node.GetPath())
+}
+
 func (self *StagedFilesController) collapseAll() error {
 	self.context().FileTreeViewModel.CollapseAll()
 
@@ -289,5 +331,33 @@ func (self *StagedFilesController) onClickActionButton(opts gocui.ViewMouseBindi
 
 	self.context().GetList().SetSelection(modelLineIdx)
 	self.context().HandleFocus(types.OnFocusOpts{})
-	return self.press([]*filetree.FileNode{node})
+
+	targetNodes := []*filetree.FileNode{node}
+	if !node.IsFile() {
+		targetNodes = flattenSelectedNodesToFiles(targetNodes)
+		self.c.Log.Debugf(
+			"staged action button click on directory: path=%q button=%q flattened_files=%d",
+			node.GetPath(),
+			buttonToken,
+			len(targetNodes),
+		)
+		if len(targetNodes) == 0 {
+			return gocui.ErrKeybindingNotHandled
+		}
+	} else {
+		self.c.Log.Debugf(
+			"staged action button click on file: path=%q button=%q",
+			node.GetPath(),
+			buttonToken,
+		)
+	}
+
+	self.c.Log.Debugf(
+		"staged action button execute: targets=%d filter=%d click=(x:%d,y:%d)",
+		len(targetNodes),
+		filter,
+		opts.X,
+		opts.Y,
+	)
+	return self.press(targetNodes)
 }

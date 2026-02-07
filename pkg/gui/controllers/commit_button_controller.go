@@ -117,7 +117,7 @@ func (self *CommitButtonController) onClick(gocui.ViewMouseBindingOpts) error {
 	// Return focus to the input so users can continue editing after commit.
 	self.c.Context().Push(self.c.Contexts().CommitInput, types.OnFocusOpts{})
 
-	message := strings.TrimSpace(self.c.Views().CommitInput.TextArea.GetContent())
+	message := strings.TrimSpace(self.c.Views().CommitInput.TextArea.GetUnwrappedContent())
 	return self.c.Helpers().WorkingTree.CommitStagedWithMessage(message, false, func() error {
 		view := self.c.Views().CommitInput
 		view.ClearTextArea()

@@ -64,6 +64,10 @@ func (self *CommitInputController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
 			Handler: self.focusStagedFiles,
 		},
+		{
+			Key:     gocui.KeyCtrlJ,
+			Handler: self.insertNewline,
+		},
 	}
 }
 
@@ -97,18 +101,23 @@ func (self *CommitInputController) focusStagedFiles() error {
 	return nil
 }
 
+func (self *CommitInputController) insertNewline() error {
+	view := self.c.Views().CommitInput
+	view.TextArea.TypeCharacter("\n")
+	view.RenderTextArea()
+	return nil
+}
+
 func (self *CommitInputController) confirm() error {
 	// The default keybinding for this action is "<enter>", which means that we
 	// also get here when pasting multi-line text that contains newlines. In
-	// that case we don't want to commit; instead we just insert a space so that
-	// the pasted message stays roughly readable on one line.
+	// that case we don't want to commit; instead we just insert a newline so that
+	// the pasted message remains readable and keeps body paragraphs.
 	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.SubmitEditorText == "<enter>" {
-		view := self.c.Views().CommitInput
-		view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
-		return nil
+		return self.insertNewline()
 	}
 
-	message := strings.TrimSpace(self.c.Views().CommitInput.TextArea.GetContent())
+	message := strings.TrimSpace(self.c.Views().CommitInput.TextArea.GetUnwrappedContent())
 	return self.c.Helpers().WorkingTree.CommitStagedWithMessage(message, false, func() error {
 		view := self.c.Views().CommitInput
 		view.ClearTextArea()

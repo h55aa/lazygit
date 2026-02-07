@@ -463,9 +463,14 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 		}
 
 		commitSectionFixedHeight := func() *boxlayout.Box {
+			commitSectionHeight := 3
+			if height >= 28 {
+				// Give the commit input a few visible lines, while still keeping a cap.
+				commitSectionHeight = 5
+			}
 			return &boxlayout.Box{
 				Direction: boxlayout.COLUMN,
-				Size:      3,
+				Size:      commitSectionHeight,
 				Children: []*boxlayout.Box{
 					{Window: "commitInput", Weight: 1},
 					commitButtonsRow(),

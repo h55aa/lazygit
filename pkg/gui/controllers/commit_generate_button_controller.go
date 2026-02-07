@@ -20,6 +20,7 @@ type CommitGenerateButtonController struct {
 const (
 	commitGenerateButtonDefaultLabel = "[ Generate ]"
 	commitGenerateButtonFocusedLabel = "[*Generate*]"
+	commitMessageOutputMaxChars      = 600
 )
 
 var _ types.IController = &CommitGenerateButtonController{}
@@ -183,13 +184,23 @@ func (self *CommitGenerateButtonController) generateCommitMessage() (string, err
 }
 
 func sanitizeCommitMessage(message string) string {
-	clean := strings.ReplaceAll(message, "\r", " ")
-	clean = strings.ReplaceAll(clean, "\n", " ")
+	clean := strings.ReplaceAll(message, "\r\n", "\n")
+	clean = strings.ReplaceAll(clean, "\r", "\n")
 	clean = strings.TrimSpace(clean)
-	if len(clean) > 200 {
-		clean = clean[:200]
+	if clean == "" {
+		return ""
 	}
-	return clean
+
+	if len(clean) <= commitMessageOutputMaxChars {
+		return clean
+	}
+
+	truncatedSuffix := "\n... (truncated)"
+	if commitMessageOutputMaxChars <= len(truncatedSuffix) {
+		return clean[:commitMessageOutputMaxChars]
+	}
+	base := strings.TrimRight(clean[:commitMessageOutputMaxChars-len(truncatedSuffix)], " \t\n")
+	return base + truncatedSuffix
 }
 
 func resolveBundledZeeMuxPath() (string, error) {

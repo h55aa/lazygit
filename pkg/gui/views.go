@@ -228,6 +228,11 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
+	// The side commit input is a compact editor: keep wrapping enabled so generated
+	// multi-line messages remain readable inside the panel.
+	gui.Views.CommitInput.TextArea.AutoWrap = true
+	gui.Views.CommitInput.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
+
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
 		keyToTitlePrefix := func(key string) string {
 			if key == "<disabled>" {

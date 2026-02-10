@@ -3,6 +3,8 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -87,6 +89,10 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
+	if customPushCmd, ok := self.resolveCustomPushCommand(); ok {
+		return self.pushWithCustomCommand(currentBranch, customPushCmd)
+	}
+
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
@@ -232,6 +238,87 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	})
+}
+
+func (self *SyncController) pushWithCustomCommand(currentBranch *models.Branch, pushCmd string) error {
+	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.Push)
+
+		cmdObj := self.c.OS().Cmd.
+			NewShell(pushCmd, self.c.UserConfig().OS.ShellFunctionsFile).
+			SetWd(self.c.Git().RepoPaths.RepoPath()).
+			PromptOnCredentialRequest(task)
+
+		if err := cmdObj.Run(); err != nil {
+			return err
+		}
+
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
+	})
+}
+
+func (self *SyncController) resolveCustomPushCommand() (string, bool) {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	if v, ok := readDotEnvValue(repoPath, "GIT_PUSH_CMD"); ok {
+		return v, true
+	}
+
+	if v := strings.TrimSpace(os.Getenv("GIT_PUSH_CMD")); v != "" {
+		return v, true
+	}
+
+	return "", false
+}
+
+func readDotEnvValue(repoPath, key string) (string, bool) {
+	if strings.TrimSpace(repoPath) == "" {
+		return "", false
+	}
+
+	envPath := filepath.Join(repoPath, ".env")
+	data, err := os.ReadFile(envPath)
+	if err != nil {
+		return "", false
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		if strings.HasPrefix(line, "export ") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
+		}
+
+		sepIdx := strings.Index(line, "=")
+		if sepIdx <= 0 {
+			continue
+		}
+
+		currentKey := strings.TrimSpace(line[:sepIdx])
+		if currentKey != key {
+			continue
+		}
+
+		value := strings.TrimSpace(line[sepIdx+1:])
+		if len(value) >= 2 {
+			if (value[0] == '"' && value[len(value)-1] == '"') || (value[0] == '\'' && value[len(value)-1] == '\'') {
+				value = value[1 : len(value)-1]
+			}
+		}
+
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return "", false
+		}
+
+		return value, true
+	}
+
+	return "", false
 }
 
 func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opts pushOpts) error {
